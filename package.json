@@ -12,7 +12,7 @@
     "node": "latest"
   },
   "scripts": {
-    "start": "brunch watch --server"
+    "postinstall": "export HOME=/var/lib/openshift/53aa7490e0b8cdae2900045b/app-root/runtime/repo; ./node_modules/bower/bin/bower install"
   },
   "dependencies": {
     "clean-css-brunch": "latest",
@@ -31,5 +31,6 @@
   },
   "devDependencies": {
     "expect.js": "latest"
-  }
+  },
+  "main": "server.js"
 }

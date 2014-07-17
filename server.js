@@ -6,7 +6,8 @@ var ejs		= require('ejs');
 var fs		= require('fs');
 var app		= express();
 
-var port = process.env.PORT || 8080; 
+app.set('port', process.env.OPENSHIFT_NODEJS_PORT || 8080);
+app.set('ipaddr', process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1");
 
 // Setup db connection pool
 var db = mongojs("mongodb://localhost/tcdb?maxPoolSize=100", ['jtwc_active']);
@@ -61,8 +62,10 @@ app.get('/', function(req,res) {
 // Setup static files
 app.use(express.static(__dirname + '/public'));
 
-var server = app.listen(port);
-console.log('Server listening on port ' + port + '...');
+var server = require('http').createServer(app);
+server.listen(app.get('port'), app.get('ipaddr'), function() {
+	console.log((new Date()) + ' Server is listening on port ' + app.get('port') + '...');
+});
 
 function cleanup () {
 	console.log('Shutting down...');
