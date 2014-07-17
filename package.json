@@ -1,0 +1,35 @@
+{
+  "author": "Billy Leung",
+  "name": "tcic_server",
+  "description": "Web and API server for TCIC",
+  "version": "0.0.1",
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "engines": {
+    "node": "latest"
+  },
+  "scripts": {
+    "start": "brunch watch --server"
+  },
+  "dependencies": {
+    "clean-css-brunch": "latest",
+    "css-brunch": "latest",
+    "handlebars-brunch": "latest",
+    "javascript-brunch": "latest",
+    "less-brunch": "latest",
+    "sass-brunch": "latest",
+    "uglify-js-brunch": "latest",
+    "read-components": "latest",
+    "express": "latest",
+    "morgan": "latest",
+    "underscore": "^1.6.0",
+    "mongojs": "^0.13.0",
+    "ejs": "^1.0.0"
+  },
+  "devDependencies": {
+    "expect.js": "latest"
+  }
+}
