@@ -5,8 +5,9 @@ var moment = require("moment");
 var $ = require('cheerio');
 var _ = require('underscore');
 
-var proxyHost = "proxy2.scig.gov.hk";
-var proxyPort = 8080;
+var proxyHost = process.env.PROXY_HOST || null;
+var proxyPort = process.env.PROXY_PORT || 0;
+console.log(process.env.PROXY_HOST);
 
 exports.getActiveStorms = getActiveStorms;
 
@@ -15,17 +16,8 @@ function getActiveStorms(resultCb) {
 	getWarnURLs(function(warnURLs) {
 		var finishCnt = 0;
 		_.each(warnURLs, function(warnURL) {
-			var options = {
-				host: proxyHost,
-				port: proxyPort,
-				path: warnURL,
-				headers: {
-					Host: "www.usno.navy.mil"
-				}
-			};
-
 			var storms;
-			download(options, function(warnText) {
+			download(httpGetOptions(warnURL), function(warnText) {
 				activeStorms = activeStorms.concat(parseStorms(warnText));
 				finishCnt++;
 
@@ -77,7 +69,10 @@ function parseStorms(warnText) {
 		} else {
 			// Parse storm info
 			var stormText = warnText.substring(stormStart+1, stormEnd);
-			storms.push(parseStorm(stormText));
+			var storm = parseStorm(stormText);
+			if (storm != null && storm.code != null) {
+				storms.push(storm);
+			}
 		}
 		++i;
 	} while(!isLast);
@@ -192,6 +187,7 @@ function getWarnURLs(cb) {
 		if (html) {
 			$("a:contains('TC Warning Text')", 'li', html).each(function(i, elem) {
 				urls.push($(this).attr('href'));
+				console.log($(this).attr('href'));
 			});
 		}
 		else console.log("error");  
@@ -200,7 +196,20 @@ function getWarnURLs(cb) {
 	});
 }
 
-function download(options, callback) {
+function download(url, callback) {
+	var options;
+	if (proxyHost != null) {
+		options = {
+			host: proxyHost,
+			port: proxyPort,
+			path: url,
+			headers: {
+				Host: require('url').parse(url).host
+			}
+		};
+	} else {
+		options = url;
+	}
 	http.get(options, function(res) {
 		var data = "";
 		res.on('data', function (chunk) {
