@@ -30,35 +30,78 @@ module.exports = View.extend({
         map = new google.maps.Map(this.el, mapOptions);
     },
     drawTracks: function(storms) {
-        var coordinates, track;
+        var track;
+	var strengthColor = ['#000000', '#009900', '#0000FF', '#FF0000', '#FF96C8', '#8C1E78'];
 	_.each(storms, function(storm) {
-		coordinates = [];
-		_.each(storm.pastTrack, function(pos) {
-			coordinates.push(new google.maps.LatLng(Number(pos.lat), Number(pos.lng)));
-		});
-		coordinates.push(new google.maps.LatLng(Number(storm.currentPos.lat),Number(storm.currentPos.lng)));
-		track = new google.maps.Polyline({
-		    path: coordinates,
-		    geodesic: true,
-		    strokeColor: '#FF0000',
-		    strokeOpacity: 1.0,
-		    strokeWeight: 2
-		});
-		track.setMap(map);
+		for (var i=0; i<storm.pastTrack.length; ++i) {
+			var startPt = storm.pastTrack[i];
+			var endPt;
+			if (i < storm.pastTrack.length-1) {
+				endPt = storm.pastTrack[i+1];
+			} else {
+				endPt = storm.currentPos;
+			}
+
+			var linePath = [
+				new google.maps.LatLng(Number(startPt.lat), Number(startPt.lng)),
+				new google.maps.LatLng(Number(endPt.lat), Number(endPt.lng))
+			];
+			track = new google.maps.Polyline({
+			    path: linePath,
+			    geodesic: true,
+			    strokeColor: strengthColor[this.getStrength(Number(startPt.centerWind))],
+			    strokeOpacity: 0.8,
+			    strokeWeight: 2
+			});
+			track.setMap(map);
+		}
 		
-		coordinates = [];
-		coordinates.push(new google.maps.LatLng(Number(storm.currentPos.lat),Number(storm.currentPos.lng)));
-		_.each(storm.forecastTrack, function(pos) {
-			coordinates.push(new google.maps.LatLng(Number(pos.lat), Number(pos.lng)));
-		});
-		track = new google.maps.Polyline({
-		    path: coordinates,
-		    geodesic: true,
-		    strokeColor: '#FF0000',
-		    strokeOpacity: 0.8,
-		    strokeWeight: 1
-		});
-		track.setMap(map);
-	});
+		var dashedLineSymbol = {
+			path: 'M 0,-2 0,2',
+		        strokeOpacity: 0.8,
+			scale: 2
+		};
+		for (var i=1; i<storm.forecastTrack.length; ++i) {
+			var startPt;
+			if (i == 1) {
+				startPt = storm.currentPos;
+			} else {
+				startPt = storm.forecastTrack[i-1];
+			}
+			var endPt = storm.forecastTrack[i];
+			var linePath = [
+			        new google.maps.LatLng(Number(startPt.lat), Number(startPt.lng)),
+				new google.maps.LatLng(Number(endPt.lat), Number(endPt.lng))
+			];
+			track = new google.maps.Polyline({
+			    path: linePath,
+			    geodesic: true,
+			    strokeOpacity: 0,
+			    strokeColor: strengthColor[this.getStrength(Number(startPt.centerWind))],
+			    strokeWeight: 2,
+			    icons: [{
+				icon: dashedLineSymbol,
+				offset: '0',
+				repeat: '20px'
+			    }]
+			});
+			track.setMap(map);
+		}
+	}, this);
+    },
+    getStrength: function(centerSpeed) {
+	if (centerSpeed >= 185) {
+		return 5;
+	} else if (centerSpeed >= 150) {
+		return 4;
+	} else if (centerSpeed >= 118) {
+		return 3;
+	} else if (centerSpeed >= 88) {
+		return 2;
+	} else if (centerSpeed >= 63) {
+		return 1;
+	} else {
+		return 0;
+	}
     }
 })
