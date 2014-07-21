@@ -4,10 +4,10 @@ var mongojs = require('mongojs');
 var moment = require("moment");
 var $ = require('cheerio');
 var _ = require('underscore');
+var logger = require('./logger');
 
 var proxyHost = process.env.PROXY_HOST || null;
 var proxyPort = process.env.PROXY_PORT || 0;
-console.log(process.env.PROXY_HOST);
 
 exports.getActiveStorms = getActiveStorms;
 
@@ -17,7 +17,7 @@ function getActiveStorms(resultCb) {
 		var finishCnt = 0;
 		_.each(warnURLs, function(warnURL) {
 			var storms;
-			download(httpGetOptions(warnURL), function(warnText) {
+			download(warnURL, function(warnText) {
 				activeStorms = activeStorms.concat(parseStorms(warnText));
 				finishCnt++;
 
@@ -173,24 +173,15 @@ function nm2KM(nm) {
 }
 
 function getWarnURLs(cb) {
-	var options = {
-		host: proxyHost,
-		port: proxyPort,
-		path: "http://www.usno.navy.mil/JTWC/",
-		headers: {
-			Host: "www.usno.navy.mil"
-		}
-	};
-
-	download(options, function(html) {
+	download("http://www.usno.navy.mil/JTWC/", function(html) {
 		var urls = [];
 		if (html) {
 			$("a:contains('TC Warning Text')", 'li', html).each(function(i, elem) {
 				urls.push($(this).attr('href'));
-				console.log($(this).attr('href'));
+				logger.info('Find url ' + $(this).attr('href'));
 			});
 		}
-		else console.log("error");  
+		else logger.error("Failed to read jtwc index page");  
 
 		cb(urls);
 	});
