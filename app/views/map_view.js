@@ -1,6 +1,8 @@
 var View     = require('./view'),
     template = require('./templates/map')
     mapStyles = require('./map_styles')
+    TextOverlay = require('../lib/maplabel');
+    stormMeta = require('../lib/storm_meta');
 
 module.exports = View.extend({
     id: 'map-view',
@@ -87,6 +89,18 @@ module.exports = View.extend({
 			});
 			track.setMap(map);
 		}
+
+		var stormNameOverlay = new TextOverlay({
+			text: stormMeta.stormTcName[storm.name.toLowerCase()] || storm.name,
+			position: new google.maps.LatLng(Number(storm.currentPos.lat), Number(storm.currentPos.lng)),
+			map: map,
+			fontSize: 18,
+			fontFamily: 'Arial, "文泉驛正黑", "WenQuanYi Zen Hei", "儷黑 Pro", "LiHei Pro", "微軟正黑體", "Microsoft JhengHei", sans-serif',
+			align: 'left',
+			strokeWeight: 3,
+			fontColor: '#FFFFFF',
+			strokeColor: '#000000'
+		});
 	}, this);
     },
     getStrength: function(centerSpeed) {
